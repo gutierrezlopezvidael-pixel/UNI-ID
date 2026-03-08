@@ -1,8 +1,9 @@
 # UNI-ID
-Reference-style: 
-![alt text][(https://github.com/user-attachments/assets/e5718dda-3200-4b0f-8163-2193628b62bf)]
-(https://github.com/user-attachments/assets/e5718dda-3200-4b0f-8163-2193628b62bf)
-UPM DE CALIDAD
+![alt text](https://github.com/user-attachments/assets/e5718dda-3200-4b0f-8163-2193628b62bf)
+<img width="205" height="165" alt="logo2 - copia" src="https://github.com/user-attachments/assets/d53c0988-ee94-4489-94f1-b8d37721d5df" />
+
+
+## UPM DE CALIDAD
 [Estado Alfa] 
 este programa aun esta al 70% de funcionalidad 
 

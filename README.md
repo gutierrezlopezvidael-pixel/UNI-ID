@@ -1,7 +1,7 @@
 # UNI-ID
 ![alt text](https://github.com/user-attachments/assets/e5718dda-3200-4b0f-8163-2193628b62bf)
 <img width="205" height="165" alt="logo2 - copia" src="https://github.com/user-attachments/assets/d53c0988-ee94-4489-94f1-b8d37721d5df" />
-"Copyright © [2026] [J Francisco VG]. Prohibida la reproducción total o parcial de esta obra sin autorización previa."
+##### "Copyright © [2026] [J Francisco VG]. Prohibida la reproducción total o parcial de esta obra sin autorización previa."
 
 
 ## UPM DE CALIDAD

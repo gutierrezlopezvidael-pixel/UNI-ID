@@ -11,6 +11,7 @@ este programa aun esta al 70% de funcionalidad
 ## Login 
 - aqui es donde Alumnos, Docentes o Administradores podran acceder ala informacion
 <img width="1874" height="1079" alt="imagen" src="https://github.com/user-attachments/assets/276e6c8c-7783-48ae-ade3-c9483ef2c6e8" />
+
 ## Modalidad de Alumnos 
 - los alumnos podran visualisar su calificasion y kardex asi como su matricula y informacion personal
 - Los alumnos podran acceder a sub pagina como Portal de Titulacion, Gestion de activos, Labcheck, Eduticked, y la web dela escuela

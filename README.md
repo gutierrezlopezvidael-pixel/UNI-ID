@@ -3,6 +3,10 @@ UPM DE CALIDAD
 [Estado Alfa] 
 este programa aun esta al 70% de funcionalidad 
 
+## Login 
+aqui es donde Alumnos, Docentes o Administradores podran acceder ala informacion
+<img width="1874" height="1079" alt="imagen" src="https://github.com/user-attachments/assets/276e6c8c-7783-48ae-ade3-c9483ef2c6e8" />
+
 
 
 ## Requisitos

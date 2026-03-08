@@ -17,6 +17,12 @@ este programa aun esta al 70% de funcionalidad
 - Los alumnos podran acceder a sub pagina como Portal de Titulacion, Gestion de activos, Labcheck, Eduticked, y la web dela escuela
 <img width="1198" height="401" alt="Captura de pantalla 2026-03-08 144159" src="https://github.com/user-attachments/assets/07b3eae8-6c96-48c9-8173-284d6c351b7e" />
 
+<img width="1180" height="325" alt="imagen" src="https://github.com/user-attachments/assets/0941b505-1b53-4a93-a0da-c0f7dcd4b69d" />
+
+<img width="1178" height="408" alt="imagen" src="https://github.com/user-attachments/assets/dbeb4c69-6be3-4dd8-9e3e-fb622a747c44" />
+
+
+
 ## Modalidad de Docentes 
 - los alumnos apareceran agrupados segun su materia se busca la mejora visual
 - El docente podra Poner calificaciones o editarlas 

@@ -41,6 +41,8 @@ este programa aun esta al 70% de funcionalidad
 - PHP 7.4+ con extensiones: pdo_mysql, json, mbstring
 - MySQL 5.7+ o MariaDB 10.3+
 - Apache (XAMPP incluye todo) # (Recomendado) #
+- Visual Studio
+- 
 
 - ## Gerarquia de BD
 - 

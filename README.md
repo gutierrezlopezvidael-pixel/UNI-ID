@@ -1,4 +1,7 @@
 # UNI-ID
+Inline-style: 
+![alt text](![logo1 - copia](https://github.com/user-attachments/assets/e5718dda-3200-4b0f-8163-2193628b62bf)
+ "Logo Title Text 1")
 UPM DE CALIDAD
 [Estado Alfa] 
 este programa aun esta al 70% de funcionalidad 

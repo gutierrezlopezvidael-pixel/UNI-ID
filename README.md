@@ -9,12 +9,19 @@
 este programa aun esta al 70% de funcionalidad 
 
 ## Login 
-aqui es donde Alumnos, Docentes o Administradores podran acceder ala informacion
+- aqui es donde Alumnos, Docentes o Administradores podran acceder ala informacion
 <img width="1874" height="1079" alt="imagen" src="https://github.com/user-attachments/assets/276e6c8c-7783-48ae-ade3-c9483ef2c6e8" />
 
+## Modalidad de Docentes 
+- los alumnos apareceran agrupados segun su materia se busca la mejora visual
+- El docente podra Poner calificaciones o editarlas 
+- El Docente Podra Pasar Lista alos alumnos[Fase Alfa aun]
+<img width="1418" height="745" alt="imagen" src="https://github.com/user-attachments/assets/a6cf333a-6d39-4e6e-b387-6fbbe89b9831" />
+
+
 ## Modalidad del Administrados 
-los Administradores podran agrega, editar e eliminar ,
-asi como como agregar meterias, docentes , editar calificacios , emitir kardex , visulizar Doc de los alumnos , agregar o eliminar materias ,
+- los Administradores podran agrega, editar e eliminar ,
+- asi como como agregar meterias, docentes , editar calificacios , emitir kardex , visulizar Doc de los alumnos , agregar o eliminar materias ,
 <img width="1857" height="1003" alt="imagen" src="https://github.com/user-attachments/assets/22b43a1b-8d78-487b-8134-14950a40a979" />
 
 

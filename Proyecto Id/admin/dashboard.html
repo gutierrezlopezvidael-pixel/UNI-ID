@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Uni-ID - Panel de Administración">
+    <title>Uni-ID | Panel Admin</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="../logo1.png" alt="UPM">
+                <span class="brand-text text-gradient">Uni-ID Admin</span>
+            </div>
+            <nav style="display:flex;gap:8px;">
+                <a href="dashboard.html" class="btn btn-secondary btn-sm">Alumnos</a>
+                <a href="docentes.html" class="btn btn-secondary btn-sm">Docentes</a>
+                <a href="calificaciones.html" class="btn btn-secondary btn-sm">Calificaciones</a>
+                <a href="carreras_materias.html" class="btn btn-secondary btn-sm">Carreras y Materias</a>
+            </nav>
+            <div class="navbar-actions">
+                <span class="text-sm" style="color:var(--text-secondary);" id="adminNameNav">Administrador</span>
+                <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-wide" style="padding-top:32px; padding-bottom:60px;">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card animate-fade" style="animation-delay:0.1s">
+                <div class="stat-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+                </div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Total Alumnos</div>
+            </div>
+            <div class="stat-card animate-fade" style="animation-delay:0.2s">
+                <div class="stat-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div class="stat-value" id="statActivos">0</div>
+                <div class="stat-label">Activos</div>
+            </div>
+            <div class="stat-card animate-fade" style="animation-delay:0.3s">
+                <div class="stat-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                </div>
+                <div class="stat-value" id="statDocs">0</div>
+                <div class="stat-label">Documentos</div>
+            </div>
+            <div class="stat-card animate-fade" style="animation-delay:0.4s">
+                <div class="stat-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" /></svg>
+                </div>
+                <div class="stat-value" id="statCarreras">0</div>
+                <div class="stat-label">Carreras</div>
+            </div>
+        </div>
+
+        <div class="table-container animate-slide-up" style="animation-delay:0.3s">
+            <div class="table-header">
+                <h3>Gestión de Alumnos</h3>
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                    <div class="search-box">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Buscar por nombre, matrícula..." oninput="debounceSearch()">
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Nuevo Alumno
+                    </button>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nombre</th>
+                            <th>Carrera</th>
+                            <th>Cuatrimestre</th>
+                            <th>Estado</th>
+                            <th>Registro</th>
+                            <th style="text-align:right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTable">
+                        <tr>
+                            <td colspan="7" class="text-center" style="padding:40px;color:var(--text-muted);">Cargando alumnos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Alumno</h3>
+                <button class="modal-close" onclick="closeModal('studentModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="studentForm" onsubmit="handleSaveStudent(event)">
+                    <input type="hidden" id="editStudentId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Matrícula *</label>
+                            <input type="text" id="fMatricula" class="form-input" placeholder="Ej: A12345" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Estado</label>
+                            <select id="fEstado" class="form-select">
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                                <option value="baja">Baja</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" id="fNombre" class="form-input" placeholder="Nombre(s)" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Apellido *</label>
+                            <input type="text" id="fApellido" class="form-input" placeholder="Apellido(s)" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Carrera *</label>
+                        <select id="fCarrera" class="form-select" required>
+                            <option value="">Selecciona una carrera</option>
+                        </select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" id="fEmail" class="form-input" placeholder="correo@ejemplo.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contraseña (mín. 6 caracteres)</label>
+                            <input type="password" id="fPassword" class="form-input" placeholder="Solo para nuevo alumno">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" id="fTelefono" class="form-input" placeholder="Ej: 9991234567">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Semestre</label>
+                            <select id="fSemestre" class="form-select">
+                                <option value="1">1er Cuatrimestre</option>
+                                <option value="2">2do Cuatrimestre</option>
+                                <option value="3">3er Cuatrimestre</option>
+                                <option value="4">4to Cuatrimestre</option>
+                                <option value="5">5to Cuatrimestre</option>
+                                <option value="6">6to Cuatrimestre</option>
+                                <option value="7">7mo Cuatrimestre</option>
+                                <option value="8">8vo Cuatrimestre</option>
+                                <option value="9">9no Cuatrimestre</option>
+                                <option value="10">10mo Cuatrimestre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grupo</label>
+                            <input type="text" id="fGrupo" class="form-input" placeholder="Ej: A, B, C">
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="padding:20px 0 0; border:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('studentModal')">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveStudent">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            Registrar Alumno
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: View Student Details + Docs -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal" style="max-width:700px;">
+            <div class="modal-header">
+                <h3>Detalle del Alumno</h3>
+                <button class="modal-close" onclick="closeModal('viewModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-header" style="margin-bottom:24px;">
+                    <div class="profile-avatar" id="viewAvatar">?</div>
+                    <div class="profile-info">
+                        <h2 id="viewName">--</h2>
+                        <p id="viewCarrera">--</p>
+                        <div style="margin-top:6px;">
+                            <span class="badge badge-success" id="viewEstado">--</span>
+                            <span class="badge badge-info" id="viewMatricula" style="margin-left:6px;">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-detail-grid" style="margin-bottom:24px;" id="viewDetails">
+                    <div class="profile-detail">
+                        <div class="label">Email</div>
+                        <div class="value" id="viewEmail">--</div>
+                    </div>
+                    <div class="profile-detail">
+                        <div class="label">Teléfono</div>
+                        <div class="value" id="viewTelefono">--</div>
+                    </div>
+                    <div class="profile-detail">
+                        <div class="label">Semestre</div>
+                        <div class="value" id="viewSemestre">--</div>
+                    </div>
+                    <div class="profile-detail">
+                        <div class="label">Grupo</div>
+                        <div class="value" id="viewGrupo">--</div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                        <h4>Documentos</h4>
+                        <label class="btn btn-primary btn-sm" for="adminDocUpload" style="cursor:pointer;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            Subir Documento
+                        </label>
+                        <input type="file" id="adminDocUpload" style="display:none;" onchange="adminUploadDoc(this)" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt,.xlsx,.xls">
+                    </div>
+                    <div id="viewDocsList">
+                        <p class="text-muted text-sm">Sin documentos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Delete Confirmation -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 style="color:var(--danger);">Confirmar Eliminación</h3>
+                <button class="modal-close" onclick="closeModal('deleteModal')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align:center;margin-bottom:16px;">
+                    <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,0.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                    </div>
+                </div>
+                <p style="text-align:center;">¿Estás seguro de que deseas eliminar al alumno <strong id="deleteStudentName"></strong>?</p>
+                <p class="text-sm text-muted" style="margin-top:8px;text-align:center;">Esta acción no se puede deshacer. Se eliminarán también todos sus documentos.</p>
+                <input type="hidden" id="deleteStudentId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/admin.js?v=2"></script>
+    <script>document.addEventListener('DOMContentLoaded', initDashboard);</script>
+</body>
+</html>

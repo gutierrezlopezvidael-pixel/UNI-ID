@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uni-ID | Panel Docente</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="../logo1.png" alt="UPM">
+                <span class="brand-text text-gradient">Panel Docente</span>
+            </div>
+            <div class="navbar-actions">
+                <span class="text-sm" style="color:var(--text-secondary);" id="docenteNameNav"></span>
+                <button class="btn btn-secondary btn-sm" onclick="docenteLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-wide" style="padding-top:32px; padding-bottom:60px;">
+        <h1 style="margin-bottom:24px;">Mis Grupos y Calificaciones</h1>
+
+        <div class="card" style="margin-bottom:24px;">
+            <h3 style="margin-bottom:12px;">Grupos asignados</h3>
+            <p class="text-muted text-sm" style="margin-bottom:16px;">Selecciona un grupo para ver alumnos y calificarlos en la materia correspondiente.</p>
+            <div id="asignacionesGrid"></div>
+        </div>
+
+        <div id="alumnosSection" style="display:none;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 id="grupoTitle">Alumnos</h3>
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('alumnosSection').style.display='none'">Cerrar</button>
+                </div>
+                <div id="alumnosCalifList"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = '../api';
+        let docente = null;
+        let asignacionSeleccionada = null;
+
+        function showToast(msg, type) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast toast-' + (type || 'info');
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function docenteLogout() {
+            fetch(API_BASE + '/docente_logout.php').then(() => {
+                localStorage.removeItem('docente');
+                window.location.href = 'login.html';
+            });
+        }
+
+        async function init() {
+            docente = JSON.parse(localStorage.getItem('docente') || 'null');
+            if (!docente) {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('docenteNameNav').textContent = (docente.nombre || '') + ' ' + (docente.apellido || '');
+            document.getElementById('asignacionesGrid').innerHTML = '<p class="text-muted">Cargando asignaciones desde la base de datos...</p>';
+            try {
+                const res = await fetch(API_BASE + '/docente_info.php', { credentials: 'same-origin' });
+                const data = await res.json();
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('docente');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    throw new Error(data.error || 'Error al cargar');
+                }
+                if (data.success && data.docente) {
+                    docente = data.docente;
+                    localStorage.setItem('docente', JSON.stringify(docente));
+                }
+            } catch (e) {
+                showToast('Error al cargar asignaciones. Usando datos guardados.', 'warning');
+                if (!docente.asignaciones) docente.asignaciones = [];
+            }
+            if (!docente.asignaciones || docente.asignaciones.length === 0) {
+                document.getElementById('asignacionesGrid').innerHTML = '<p class="text-muted">No tienes grupos asignados. El administrador debe asignarte materias y grupos.</p>';
+                return;
+            }
+            renderAsignaciones();
+        }
+
+        function renderAsignaciones() {
+            const asigs = docente.asignaciones || [];
+            const container = document.getElementById('asignacionesGrid');
+            container.innerHTML = asigs.map(a => {
+                const label = `${esc(a.materia_nombre)} — ${esc(a.carrera)} ${a.cuatrimestre}° ${a.grupo ? 'Grupo ' + esc(a.grupo) : ''}`;
+                return `<button type="button" class="btn btn-primary" style="margin:4px;" onclick="cargarAlumnos('${esc(a.materia_nombre).replace(/'/g, "\\'")}', '${esc(a.carrera).replace(/'/g, "\\'")}', ${a.cuatrimestre}, '${(a.grupo || '').replace(/'/g, "\\'")}')">${label}</button>`;
+            }).join('');
+        }
+
+        async function cargarAlumnos(materia, carrera, cuatrimestre, grupo) {
+            asignacionSeleccionada = { materia_nombre: materia, carrera, cuatrimestre, grupo: grupo || null };
+            try {
+                const res = await fetch(API_BASE + '/calificaciones.php?carrera=' + encodeURIComponent(carrera) + '&cuatrimestre=' + encodeURIComponent(cuatrimestre));
+                const data = await res.json();
+                if (!data.success) throw new Error();
+                let alumnos = data.alumnos || [];
+                if (grupo && grupo.trim()) {
+                    alumnos = alumnos.filter(a => (a.grupo || '').trim().toLowerCase() === grupo.trim().toLowerCase());
+                }
+                document.getElementById('grupoTitle').textContent = materia + ' — ' + carrera + ' ' + cuatrimestre + '°' + (grupo ? ' Grupo ' + grupo : '');
+                renderAlumnosCalif(alumnos, materia, cuatrimestre);
+                document.getElementById('alumnosSection').style.display = 'block';
+            } catch (e) {
+                showToast('Error al cargar alumnos', 'error');
+            }
+        }
+
+        function renderAlumnosCalif(alumnos, materia, cuatrimestre) {
+            const container = document.getElementById('alumnosCalifList');
+            if (!alumnos || alumnos.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">No hay alumnos en este grupo.</div>';
+                return;
+            }
+            container.innerHTML = alumnos.map(a => {
+                const calif = (a.calificaciones || []).find(c => c.materia_nombre === materia);
+                const val = calif ? calif.calificacion : '';
+                const califId = calif ? calif.id : null;
+                return `
+                    <div class="card card-compact" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <strong>${esc(a.nombre)} ${esc(a.apellido)}</strong> — ${esc(a.matricula)}<br>
+                            <span class="text-sm text-muted">${esc(a.carrera)} ${a.semestre}°</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <label class="form-label" style="margin:0;">Calificación:</label>
+                            <input type="number" min="0" max="100" step="0.5" value="${val}" style="width:80px;padding:8px;border:1px solid var(--border);border-radius:8px;" 
+                                onchange="guardarCalif(${a.id}, '${esc(materia).replace(/'/g, "\\'")}', ${cuatrimestre}, this.value, ${califId || 'null'})">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function guardarCalif(alumnoId, materia, cuatrimestre, valor, califId) {
+            const n = parseFloat(valor);
+            if (isNaN(n) || n < 0 || n > 100) return;
+            try {
+                if (califId && califId !== 'null') {
+                    const res = await fetch(API_BASE + '/calificaciones.php', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: califId, calificacion: n })
+                    });
+                    const data = await res.json();
+                    if (data.success) showToast('Calificación actualizada', 'success');
+                } else {
+                    const res = await fetch(API_BASE + '/calificaciones.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ alumno_id: alumnoId, materia_nombre: materia, cuatrimestre, calificacion: n })
+                    });
+                    const data = await res.json();
+                    if (data.success) { showToast('Calificación registrada', 'success'); cargarAlumnos(asignacionSeleccionada.materia_nombre, asignacionSeleccionada.carrera, asignacionSeleccionada.cuatrimestre, asignacionSeleccionada.grupo || ''); }
+                }
+            } catch (e) { showToast('Error al guardar', 'error'); }
+        }
+    </script>
+    <script>document.addEventListener('DOMContentLoaded', init);</script>
+</body>
+</html>

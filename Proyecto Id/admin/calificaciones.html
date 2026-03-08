@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uni-ID | Calificaciones</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="../logo1.png" alt="UPM">
+                <span class="brand-text text-gradient">Uni-ID Admin</span>
+            </div>
+            <nav style="display:flex;gap:8px;">
+                <a href="dashboard.html" class="btn btn-secondary btn-sm">Alumnos</a>
+                <a href="docentes.html" class="btn btn-secondary btn-sm">Docentes</a>
+                <a href="calificaciones.html" class="btn btn-primary btn-sm">Calificaciones</a>
+                <a href="carreras_materias.html" class="btn btn-secondary btn-sm">Carreras y Materias</a>
+            </nav>
+            <div class="navbar-actions">
+                <span class="text-sm" style="color:var(--text-secondary);" id="adminNameNav">Administrador</span>
+                <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-wide" style="padding-top:32px; padding-bottom:60px;">
+        <h1 style="margin-bottom:24px;">Calificaciones</h1>
+
+        <div class="card" style="margin-bottom:24px;">
+            <h3 style="margin-bottom:16px;">Filtrar por carrera y cuatrimestre</h3>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
+                <div class="form-group" style="margin-bottom:0;min-width:280px;">
+                    <label class="form-label">Carrera</label>
+                    <select id="filterCarrera" class="form-select" onchange="loadAlumnosByFilter()">
+                        <option value="">Selecciona carrera</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;min-width:140px;">
+                    <label class="form-label">Cuatrimestre</label>
+                    <select id="filterCuatrimestre" class="form-select" onchange="loadAlumnosByFilter()">
+                        <option value="">--</option>
+                        <option value="1">1°</option>
+                        <option value="2">2°</option>
+                        <option value="3">3°</option>
+                        <option value="4">4°</option>
+                        <option value="5">5°</option>
+                        <option value="6">6°</option>
+                        <option value="7">7°</option>
+                        <option value="8">8°</option>
+                        <option value="9">9°</option>
+                        <option value="10">10°</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="loadAlumnosByFilter()">Ver lista</button>
+            </div>
+        </div>
+
+        <div id="alumnosCalifSection" style="display:none;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 id="sectionTitle">Alumnos</h3>
+                </div>
+                <div id="alumnosCalifList"></div>
+            </div>
+        </div>
+
+        <div id="emptyFilterState" class="card" style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+            <p>Selecciona una <strong>carrera</strong> y un <strong>cuatrimestre</strong> (1 a 10) para ver la lista de alumnos y calificarlos por materia.</p>
+        </div>
+    </main>
+
+    <!-- Modal Agregar Calificación -->
+    <div class="modal-overlay" id="addCalifModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Agregar calificación — <span id="addCalifAlumnoNombre"></span></h3>
+                <button class="modal-close" onclick="closeAddCalifModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Materia *</label>
+                    <select id="addCalifMateria" class="form-select">
+                        <option value="">Selecciona materia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Calificación (0-100) *</label>
+                    <input type="number" id="addCalifValor" class="form-input" min="0" max="100" step="0.5" placeholder="Ej. 85">
+                </div>
+                <div class="modal-footer" style="padding-top:16px;border:none;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddCalifModal()">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAddCalif()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '../api';
+
+        function showToast(msg, type) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast toast-' + (type || 'info');
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+
+        function adminLogout() {
+            fetch(API_BASE + '/admin_logout.php').then(() => {
+                localStorage.removeItem('admin');
+                window.location.href = 'login.html';
+            });
+        }
+
+        function init() {
+            const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+            if (!admin) { window.location.href = 'login.html'; return; }
+            document.getElementById('adminNameNav').textContent = admin.nombre || admin.usuario;
+            loadCarreras();
+        }
+
+        let carreras = [];
+        async function loadCarreras() {
+            try {
+                const res = await fetch(API_BASE + '/carreras.php');
+                const data = await res.json();
+                if (data.success && data.carreras) {
+                    carreras = data.carreras;
+                    const sel = document.getElementById('filterCarrera');
+                    sel.innerHTML = '<option value="">Selecciona carrera</option>' + carreras.map(c => '<option value="' + esc(c.nombre) + '">' + esc(c.nombre) + '</option>').join('');
+                }
+            } catch (e) { showToast('Error al cargar carreras', 'error'); }
+        }
+
+        async function loadAlumnosByFilter() {
+            const carrera = document.getElementById('filterCarrera').value;
+            const cuatrimestre = document.getElementById('filterCuatrimestre').value;
+            if (!carrera || !cuatrimestre) {
+                document.getElementById('alumnosCalifSection').style.display = 'none';
+                document.getElementById('emptyFilterState').style.display = 'block';
+                return;
+            }
+            try {
+                const res = await fetch(API_BASE + '/calificaciones.php?carrera=' + encodeURIComponent(carrera) + '&cuatrimestre=' + encodeURIComponent(cuatrimestre));
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('emptyFilterState').style.display = 'none';
+                    document.getElementById('alumnosCalifSection').style.display = 'block';
+                    document.getElementById('sectionTitle').textContent = carrera + ' — Cuatrimestre ' + cuatrimestre;
+                    renderAlumnosCalif(data.alumnos, cuatrimestre);
+                }
+            } catch (e) { showToast('Error al cargar alumnos', 'error'); }
+        }
+
+        function renderAlumnosCalif(alumnos, cuatrimestre) {
+            const container = document.getElementById('alumnosCalifList');
+            if (!alumnos || alumnos.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">No hay alumnos en esta carrera y cuatrimestre.</div>';
+                return;
+            }
+            container.innerHTML = alumnos.map(a => {
+                const califs = (a.calificaciones || []).map(c => `
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="flex:1;font-size:0.9rem;">${esc(c.materia_nombre)}</span>
+                        <input type="number" min="0" max="100" step="0.5" value="${c.calificacion}" style="width:70px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;" onchange="saveCalif(${c.id}, this.value)">
+                        <button type="button" class="btn btn-sm" style="background:rgba(239,68,68,0.06);color:#dc2626;" onclick="deleteCalif(${c.id}, ${a.id}, ${cuatrimestre})">Eliminar</button>
+                    </div>
+                `).join('');
+                return `
+                    <div class="card card-compact" style="margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+                            <div>
+                                <strong>${esc(a.nombre)} ${esc(a.apellido)}</strong> — ${esc(a.matricula)}<br>
+                                <span class="text-sm text-muted">${esc(a.carrera)}</span>
+                            </div>
+                            <div style="display:flex;gap:8px;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="openAddCalifModal(${a.id}, '${(esc(a.nombre) + ' ' + esc(a.apellido)).replace(/'/g, "\\'")}', ${cuatrimestre})">+ Agregar materia</button>
+                                <label class="btn btn-primary btn-sm" style="cursor:pointer;">Subir Kardex
+                                    <input type="file" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadKardex(this, ${a.id})">
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+                            ${califs || '<p class="text-muted text-sm">Sin calificaciones. Agrega una materia.</p>'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let addCalifCtx = { alumnoId: null, cuatrimestre: null };
+
+        async function openAddCalifModal(alumnoId, nombreAlumno, cuatrimestre) {
+            const carreraNombre = document.getElementById('filterCarrera').value;
+            const carrera = carreras.find(c => c.nombre === carreraNombre);
+            if (!carrera) { showToast('Selecciona carrera y cuatrimestre primero', 'warning'); return; }
+            addCalifCtx = { alumnoId, nombreAlumno, cuatrimestre, carreraId: carrera.id };
+            document.getElementById('addCalifAlumnoNombre').textContent = nombreAlumno;
+            document.getElementById('addCalifMateria').innerHTML = '<option value="">Cargando materias...</option>';
+            document.getElementById('addCalifValor').value = '';
+            document.getElementById('addCalifModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            try {
+                const res = await fetch(API_BASE + '/materias.php?carrera_id=' + carrera.id + '&cuatrimestre=' + cuatrimestre);
+                const data = await res.json();
+                const materias = data.success && data.materias ? data.materias : [];
+                const sel = document.getElementById('addCalifMateria');
+                sel.innerHTML = '<option value="">Selecciona materia</option>' + materias.map(m => '<option value="' + esc(m.nombre) + '">' + esc(m.nombre) + '</option>').join('');
+            } catch (e) {
+                document.getElementById('addCalifMateria').innerHTML = '<option value="">Error al cargar materias</option>';
+            }
+        }
+
+        function closeAddCalifModal() {
+            document.getElementById('addCalifModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function submitAddCalif() {
+            const materia = document.getElementById('addCalifMateria').value.trim();
+            const val = document.getElementById('addCalifValor').value;
+            if (!materia) { showToast('Selecciona una materia', 'warning'); return; }
+            const n = parseFloat(val);
+            if (isNaN(n) || n < 0 || n > 100) { showToast('Calificación entre 0 y 100', 'warning'); return; }
+            fetch(API_BASE + '/calificaciones.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alumno_id: addCalifCtx.alumnoId, materia_nombre: materia, cuatrimestre: addCalifCtx.cuatrimestre, calificacion: n })
+            }).then(r => r.json()).then(data => {
+                if (data.success) { showToast('Calificación agregada', 'success'); closeAddCalifModal(); loadAlumnosByFilter(); }
+                else showToast(data.error || 'Error', 'error');
+            }).catch(() => showToast('Error de conexión', 'error'));
+        }
+
+        function saveCalif(id, value) {
+            const n = parseFloat(value);
+            if (isNaN(n) || n < 0 || n > 100) return;
+            fetch(API_BASE + '/calificaciones.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, calificacion: n })
+            }).then(r => r.json()).then(data => {
+                if (data.success) showToast('Guardado', 'success');
+                else showToast(data.error || 'Error', 'error');
+            }).catch(() => showToast('Error de conexión', 'error'));
+        }
+
+        function deleteCalif(id, alumnoId, cuatrimestre) {
+            if (!confirm('¿Eliminar esta calificación?')) return;
+            fetch(API_BASE + '/calificaciones.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id }) })
+                .then(r => r.json()).then(data => { if (data.success) { showToast('Eliminada', 'success'); loadAlumnosByFilter(); } });
+        }
+
+        function uploadKardex(input, alumnoId) {
+            if (!input.files || !input.files[0]) return;
+            const fd = new FormData();
+            fd.append('alumno_id', alumnoId);
+            fd.append('documento', input.files[0]);
+            fd.append('descripcion', 'Kardex');
+            fd.append('tipo_documento', 'kardex');
+            showToast('Subiendo Kardex...', 'info');
+            fetch(API_BASE + '/documentos.php', { method: 'POST', body: fd })
+                .then(r => r.json()).then(data => {
+                    if (data.success) showToast('Kardex subido', 'success'); else showToast(data.error || 'Error', 'error');
+                }).catch(() => showToast('Error de conexión', 'error'));
+            input.value = '';
+        }
+
+        function esc(s) {
+            if (!s) return '';
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+    </script>
+    <script>document.addEventListener('DOMContentLoaded', init);</script>
+</body>
+</html>

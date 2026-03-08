@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uni-ID | Carreras y Materias</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="../logo1.png" alt="UPM">
+                <span class="brand-text text-gradient">Uni-ID Admin</span>
+            </div>
+            <nav style="display:flex;gap:8px;">
+                <a href="dashboard.html" class="btn btn-secondary btn-sm">Alumnos</a>
+                <a href="docentes.html" class="btn btn-secondary btn-sm">Docentes</a>
+                <a href="calificaciones.html" class="btn btn-secondary btn-sm">Calificaciones</a>
+                <a href="carreras_materias.html" class="btn btn-primary btn-sm">Carreras y Materias</a>
+            </nav>
+            <div class="navbar-actions">
+                <span class="text-sm" style="color:var(--text-secondary);" id="adminNameNav">Administrador</span>
+                <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-wide" style="padding-top:32px; padding-bottom:60px;">
+        <h1 style="margin-bottom:24px;">Carreras y Materias</h1>
+        <p class="text-muted" style="margin-bottom:32px;">Gestiona las carreras y las materias por carrera y cuatrimestre. En Materias, elige una carrera → luego un cuatrimestre (1° a 10°) → ahí verás y podrás agregar/editar las materias de ese cuatrimestre.</p>
+
+        <!-- Carreras -->
+        <div class="table-container" style="margin-bottom:40px;">
+            <div class="table-header">
+                <h3>Carreras</h3>
+                <button class="btn btn-primary btn-sm" onclick="openCarreraModal()">+ Nueva Carrera</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th style="text-align:right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carrerasTable">
+                        <tr><td colspan="2" class="text-center text-muted" style="padding:24px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Materias: Carreras → Cuatrimestres → Materias -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>Materias</h3>
+                <span id="materiasBreadcrumb" style="display:none;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="materiasBackBtn">← Volver</button>
+                </span>
+                <button class="btn btn-primary btn-sm" id="materiasAddBtn" style="display:none;" onclick="openMateriaModal()">+ Nueva Materia</button>
+            </div>
+            <div id="materiasCarrerasList">
+                <p class="text-muted" style="padding:16px 16px 8px;">Selecciona una carrera para ver sus cuatrimestres</p>
+                <div style="overflow-x:auto;padding:0 16px 16px;">
+                    <table>
+                        <thead>
+                            <tr><th>Nombre</th><th style="text-align:right;">Acciones</th></tr>
+                        </thead>
+                        <tbody id="carrerasMateriasGrid"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="materiasCuatrimestresList" style="display:none;">
+                <p class="text-muted" style="padding:12px 16px;">Cuatrimestres (1° a 10°). Elige uno para ver sus materias:</p>
+                <div id="cuatrimestresGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 16px 16px;"></div>
+            </div>
+            <div id="materiasTableWrap" style="display:none;">
+                <p class="text-muted text-sm" style="padding:12px 16px 0;" id="materiasPath"></p>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr><th>Materia</th><th style="text-align:right;">Acciones</th></tr>
+                        </thead>
+                        <tbody id="materiasTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Carrera -->
+    <div class="modal-overlay" id="carreraModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="carreraModalTitle">Nueva Carrera</h3>
+                <button class="modal-close" onclick="closeCarreraModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="carreraForm" onsubmit="saveCarrera(event)">
+                    <input type="hidden" id="carreraId">
+                    <div class="form-group">
+                        <label class="form-label">Nombre de la carrera *</label>
+                        <input type="text" id="carreraNombre" class="form-input" required placeholder="Ej. Lic. en Ing. en Tec. de la Información">
+                    </div>
+                    <div class="modal-footer" style="padding-top:16px;border:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeCarreraModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Materia -->
+    <div class="modal-overlay" id="materiaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="materiaModalTitle">Nueva Materia</h3>
+                <button class="modal-close" onclick="closeMateriaModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="materiaForm" onsubmit="saveMateria(event)">
+                    <input type="hidden" id="materiaId">
+                    <input type="hidden" id="materiaCarreraId">
+                    <input type="hidden" id="materiaCuatrimestre">
+                    <div class="form-group">
+                        <label class="form-label">Nombre de la materia *</label>
+                        <input type="text" id="materiaNombre" class="form-input" required placeholder="Ej. Inglés I, Matemáticas II">
+                    </div>
+                    <p class="text-muted text-sm" id="materiaContexto"></p>
+                    <div class="modal-footer" style="padding-top:16px;border:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeMateriaModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '../api';
+        let carreras = [], materias = [];
+        let materiaCarreraId = null, materiaCuatrimestre = null, materiaCarreraNombre = '';
+
+        function showToast(msg, type) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast toast-' + (type || 'info');
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+
+        function adminLogout() {
+            fetch(API_BASE + '/admin_logout.php').then(() => {
+                localStorage.removeItem('admin');
+                window.location.href = 'login.html';
+            });
+        }
+
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function init() {
+            const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+            if (!admin) { window.location.href = 'login.html'; return; }
+            document.getElementById('adminNameNav').textContent = admin.nombre || admin.usuario;
+            loadCarreras();
+            showMateriasCarreras();
+            document.getElementById('materiasBackBtn').onclick = materiasGoBack;
+        }
+
+        async function loadCarreras() {
+            try {
+                const res = await fetch(API_BASE + '/carreras.php');
+                const data = await res.json();
+                if (!data.success) return;
+                carreras = data.carreras || [];
+                const tbody = document.getElementById('carrerasTable');
+                if (carreras.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted" style="padding:24px;">No hay carreras. Agrega una.</td></tr>';
+                } else {
+                    tbody.innerHTML = carreras.map(c =>
+                        `<tr>
+                            <td>${esc(c.nombre)}</td>
+                            <td style="text-align:right;">
+                                <button class="btn btn-secondary btn-sm" onclick="openEditCarrera(${c.id})">Editar</button>
+                                <button class="btn btn-sm" style="background:rgba(239,68,68,0.06);color:#dc2626;" onclick="deleteCarrera(${c.id}, '${esc(c.nombre).replace(/'/g, "\\'")}')">Eliminar</button>
+                            </td>
+                        </tr>`
+                    ).join('');
+                }
+                renderMateriasCarrerasGrid();
+            } catch (e) { showToast('Error al cargar carreras', 'error'); }
+        }
+
+        function showMateriasCarreras() {
+            document.getElementById('materiasCarrerasList').style.display = 'block';
+            document.getElementById('materiasCuatrimestresList').style.display = 'none';
+            document.getElementById('materiasTableWrap').style.display = 'none';
+            document.getElementById('materiasBreadcrumb').style.display = 'none';
+            document.getElementById('materiasAddBtn').style.display = 'none';
+            materiaCarreraId = null; materiaCuatrimestre = null;
+        }
+
+        function renderMateriasCarrerasGrid() {
+            const tbody = document.getElementById('carrerasMateriasGrid');
+            if (!carreras.length) {
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted" style="padding:24px;">No hay carreras. Crea una arriba.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = carreras.map(c =>
+                `<tr>
+                    <td>${esc(c.nombre)}</td>
+                    <td style="text-align:right;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="selectCarreraMaterias(${c.id}, '${esc(c.nombre).replace(/'/g, "\\'")}')">Ver cuatrimestres</button>
+                    </td>
+                </tr>`
+            ).join('');
+        }
+
+        function selectCarreraMaterias(id, nombre) {
+            materiaCarreraId = id; materiaCarreraNombre = nombre; materiaCuatrimestre = null;
+            document.getElementById('materiasCarrerasList').style.display = 'none';
+            document.getElementById('materiasCuatrimestresList').style.display = 'block';
+            document.getElementById('materiasTableWrap').style.display = 'none';
+            document.getElementById('materiasBreadcrumb').style.display = 'inline';
+            document.getElementById('materiasBackBtn').textContent = '← Volver a carreras';
+            document.getElementById('materiasAddBtn').style.display = 'none';
+            const grid = document.getElementById('cuatrimestresGrid');
+            grid.innerHTML = [1,2,3,4,5,6,7,8,9,10].map(cuat =>
+                `<button type="button" class="btn btn-secondary" onclick="selectCuatrimestreMaterias(${cuat})">${cuat}°</button>`
+            ).join('');
+        }
+
+        function selectCuatrimestreMaterias(cuat) {
+            materiaCuatrimestre = cuat;
+            document.getElementById('materiasCuatrimestresList').style.display = 'none';
+            document.getElementById('materiasTableWrap').style.display = 'block';
+            document.getElementById('materiasPath').textContent = materiaCarreraNombre + ' → Cuatrimestre ' + cuat + '°';
+            document.getElementById('materiasBackBtn').textContent = '← Volver a cuatrimestres';
+            document.getElementById('materiasAddBtn').style.display = 'inline-block';
+            loadMateriasPorCarreraCuat();
+        }
+
+        function materiasGoBack() {
+            if (materiaCuatrimestre !== null) {
+                selectCarreraMaterias(materiaCarreraId, materiaCarreraNombre);
+            } else if (materiaCarreraId !== null) {
+                showMateriasCarreras();
+                renderMateriasCarrerasGrid();
+            }
+        }
+
+        async function loadMateriasPorCarreraCuat() {
+            if (!materiaCarreraId || !materiaCuatrimestre) return;
+            try {
+                const res = await fetch(API_BASE + '/materias.php?carrera_id=' + materiaCarreraId + '&cuatrimestre=' + materiaCuatrimestre);
+                const data = await res.json();
+                materias = (data.success && data.materias) ? data.materias : [];
+                const tbody = document.getElementById('materiasTable');
+                if (materias.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted" style="padding:24px;">No hay materias en este cuatrimestre. Agrega una.</td></tr>';
+                } else {
+                    tbody.innerHTML = materias.map(m =>
+                        `<tr>
+                            <td>${esc(m.nombre)}</td>
+                            <td style="text-align:right;">
+                                <button class="btn btn-secondary btn-sm" onclick="openEditMateria(${m.id})">Editar</button>
+                                <button class="btn btn-sm" style="background:rgba(239,68,68,0.06);color:#dc2626;" onclick="deleteMateria(${m.id}, '${esc(m.nombre).replace(/'/g, "\\'")}')">Eliminar</button>
+                            </td>
+                        </tr>`
+                    ).join('');
+                }
+            } catch (e) { showToast('Error al cargar materias', 'error'); }
+        }
+
+        function openCarreraModal(editId) {
+            document.getElementById('carreraModalTitle').textContent = editId ? 'Editar Carrera' : 'Nueva Carrera';
+            document.getElementById('carreraId').value = editId || '';
+            document.getElementById('carreraNombre').value = editId ? (carreras.find(c => c.id == editId)?.nombre || '') : '';
+            document.getElementById('carreraModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openEditCarrera(id) { openCarreraModal(id); }
+
+        function closeCarreraModal() {
+            document.getElementById('carreraModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function saveCarrera(e) {
+            e.preventDefault();
+            const id = document.getElementById('carreraId').value;
+            const nombre = document.getElementById('carreraNombre').value.trim();
+            if (!nombre) { showToast('Nombre requerido', 'warning'); return; }
+            const url = API_BASE + '/carreras.php';
+            const res = await fetch(url, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id ? { id: parseInt(id), nombre } : { nombre })
+            });
+            const data = await res.json();
+            if (data.success) { showToast(id ? 'Carrera actualizada' : 'Carrera creada', 'success'); closeCarreraModal(); loadCarreras(); }
+            else showToast(data.error || 'Error', 'error');
+        }
+
+        async function deleteCarrera(id, nombre) {
+            if (!confirm('¿Eliminar la carrera "' + nombre + '"? Se eliminarán también sus materias.')) return;
+            const res = await fetch(API_BASE + '/carreras.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: parseInt(id) }) });
+            const data = await res.json();
+            if (data.success) { showToast('Carrera eliminada', 'success'); loadCarreras(); if (materiaCarreraId == id) showMateriasCarreras(); renderMateriasCarrerasGrid(); }
+            else showToast(data.error || 'Error', 'error');
+        }
+
+        function openMateriaModal(editM) {
+            document.getElementById('materiaModalTitle').textContent = editM ? 'Editar Materia' : 'Nueva Materia';
+            document.getElementById('materiaId').value = editM ? editM.id : '';
+            document.getElementById('materiaNombre').value = editM ? editM.nombre : '';
+            document.getElementById('materiaCarreraId').value = editM ? editM.carrera_id : materiaCarreraId;
+            document.getElementById('materiaCuatrimestre').value = editM ? editM.cuatrimestre : materiaCuatrimestre;
+            const ctx = editM ? (editM.carrera_nombre + ', ' + editM.cuatrimestre + '°') : (materiaCarreraNombre + ', ' + materiaCuatrimestre + '°');
+            document.getElementById('materiaContexto').textContent = 'Carrera: ' + ctx;
+            document.getElementById('materiaModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openEditMateria(id) {
+            const m = materias.find(x => x.id == id);
+            if (m) openMateriaModal(m);
+        }
+
+        function closeMateriaModal() {
+            document.getElementById('materiaModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function saveMateria(e) {
+            e.preventDefault();
+            const id = document.getElementById('materiaId').value;
+            const nombre = document.getElementById('materiaNombre').value.trim();
+            const carreraId = parseInt(document.getElementById('materiaCarreraId').value);
+            const cuat = parseInt(document.getElementById('materiaCuatrimestre').value) || materiaCuatrimestre;
+            if (!nombre) { showToast('Nombre de materia requerido', 'warning'); return; }
+            if (!carreraId || !cuat) { showToast('Contexto de carrera/cuatrimestre inválido', 'warning'); return; }
+            const url = API_BASE + '/materias.php';
+            const body = id ? { id: parseInt(id), nombre, carrera_id: carreraId, cuatrimestre: cuat } : { nombre, carrera_id: carreraId, cuatrimestre: cuat };
+            const res = await fetch(url, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) { showToast(id ? 'Materia actualizada' : 'Materia creada', 'success'); closeMateriaModal(); loadMateriasPorCarreraCuat(); }
+            else showToast(data.error || 'Error', 'error');
+        }
+
+        async function deleteMateria(id, nombre) {
+            if (!confirm('¿Eliminar la materia "' + nombre + '"?')) return;
+            const res = await fetch(API_BASE + '/materias.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: parseInt(id) }) });
+            const data = await res.json();
+            if (data.success) { showToast('Materia eliminada', 'success'); loadMateriasPorCarreraCuat(); }
+            else showToast(data.error || 'Error', 'error');
+        }
+    </script>
+    <script>document.addEventListener('DOMContentLoaded', init);</script>
+</body>
+</html>

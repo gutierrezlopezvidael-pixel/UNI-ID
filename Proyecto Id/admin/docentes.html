@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uni-ID | Docentes</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="../logo1.png" alt="UPM">
+                <span class="brand-text text-gradient">Uni-ID Admin</span>
+            </div>
+            <nav style="display:flex;gap:8px;">
+                <a href="dashboard.html" class="btn btn-secondary btn-sm">Alumnos</a>
+                <a href="docentes.html" class="btn btn-primary btn-sm">Docentes</a>
+                <a href="calificaciones.html" class="btn btn-secondary btn-sm">Calificaciones</a>
+                <a href="carreras_materias.html" class="btn btn-secondary btn-sm">Carreras y Materias</a>
+            </nav>
+            <div class="navbar-actions">
+                <span class="text-sm" style="color:var(--text-secondary);" id="adminNameNav">Administrador</span>
+                <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+                    Salir
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-wide" style="padding-top:32px; padding-bottom:60px;">
+        <h1 style="margin-bottom:24px;">Docentes</h1>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3>Gestión de Docentes</h3>
+                <button class="btn btn-primary btn-sm" onclick="openAddDocenteModal()">+ Nuevo Docente</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Materias / Grupos</th>
+                            <th style="text-align:right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="docentesTable">
+                        <tr><td colspan="5" class="text-center text-muted" style="padding:40px;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Docente -->
+    <div class="modal-overlay" id="docenteModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="docenteModalTitle">Nuevo Docente</h3>
+                <button class="modal-close" onclick="closeDocenteModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="docenteForm" onsubmit="saveDocente(event)">
+                    <input type="hidden" id="editDocenteId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Usuario *</label>
+                            <input type="text" id="dUsuario" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" id="dPassword" class="form-input" placeholder="Dejar vacío para no cambiar">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" id="dNombre" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" id="dApellido" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="dEmail" class="form-input">
+                    </div>
+                    <div class="modal-footer" style="padding-top:16px;border:none;">
+                        <button type="button" class="btn btn-secondary" onclick="closeDocenteModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Asignaciones -->
+    <div class="modal-overlay" id="asignacionesModal">
+        <div class="modal" style="max-width:700px;">
+            <div class="modal-header">
+                <h3>Asignaciones: <span id="asigDocenteNombre"></span></h3>
+                <button class="modal-close" onclick="closeAsignacionesModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="asigDocenteId">
+                <div style="margin-bottom:16px;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="openAddAsignacionForm()">+ Agregar materia/grupo</button>
+                </div>
+                <div id="asignacionesList"></div>
+                <div id="addAsignacionForm" style="display:none; margin-top:16px; padding:16px; background:var(--bg-subtle); border-radius:12px;">
+                    <h4 style="margin-bottom:12px;">Nueva asignación</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Carrera *</label>
+                            <select id="aCarrera" class="form-select" onchange="onAsigCarreraCuatrimestreChange()">
+                                <option value="">Selecciona</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cuatrimestre *</label>
+                            <select id="aCuatrimestre" class="form-select" onchange="onAsigCarreraCuatrimestreChange()">
+                                <option value="1">1°</option><option value="2">2°</option><option value="3">3°</option>
+                                <option value="4">4°</option><option value="5">5°</option><option value="6">6°</option>
+                                <option value="7">7°</option><option value="8">8°</option><option value="9">9°</option>
+                                <option value="10">10°</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Materia *</label>
+                            <select id="aMateria" class="form-select" disabled>
+                                <option value="">Primero elige carrera y cuatrimestre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Grupo *</label>
+                            <select id="aGrupo" class="form-select" required>
+                                <option value="">Selecciona grupo</option>
+                                <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                                <option value="D">D</option><option value="E">E</option><option value="F">F</option>
+                                <option value="G">G</option><option value="H">H</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px; margin-top:12px;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveAsignacion()">Guardar asignación</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('addAsignacionForm').style.display='none'">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '../api';
+        let docentes = [], carreras = [];
+
+        function showToast(msg, type) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast toast-' + (type || 'info');
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.classList.add('hide'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+
+        function adminLogout() {
+            fetch(API_BASE + '/admin_logout.php').then(() => {
+                localStorage.removeItem('admin');
+                window.location.href = 'login.html';
+            });
+        }
+
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function init() {
+            const admin = JSON.parse(localStorage.getItem('admin') || 'null');
+            if (!admin) { window.location.href = 'login.html'; return; }
+            document.getElementById('adminNameNav').textContent = admin.nombre || admin.usuario;
+            loadDocentes();
+            loadCarreras();
+        }
+
+        async function loadCarreras() {
+            try {
+                const res = await fetch(API_BASE + '/carreras.php');
+                const data = await res.json();
+                if (data.success && data.carreras) carreras = data.carreras;
+                const sel = document.getElementById('aCarrera');
+                sel.innerHTML = '<option value="">Selecciona</option>' + (carreras || []).map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('');
+            } catch (e) { console.warn('Error cargando carreras', e); }
+        }
+
+        async function onAsigCarreraCuatrimestreChange() {
+            const carreraId = document.getElementById('aCarrera').value;
+            const cuatrimestre = document.getElementById('aCuatrimestre').value;
+            const sel = document.getElementById('aMateria');
+            if (!carreraId || !cuatrimestre) {
+                sel.disabled = true;
+                sel.innerHTML = '<option value="">Primero elige carrera y cuatrimestre</option>';
+                return;
+            }
+            try {
+                sel.disabled = true;
+                sel.innerHTML = '<option value="">Cargando materias...</option>';
+                const res = await fetch(API_BASE + '/materias.php?carrera_id=' + encodeURIComponent(carreraId) + '&cuatrimestre=' + encodeURIComponent(cuatrimestre));
+                const data = await res.json();
+                const list = (data.success && data.materias) ? data.materias : [];
+                sel.innerHTML = '<option value="">Selecciona materia</option>' + list.map(m => '<option value="' + esc(m.nombre) + '">' + esc(m.nombre) + '</option>').join('');
+                sel.disabled = false;
+            } catch (e) {
+                sel.innerHTML = '<option value="">Error al cargar</option>';
+            }
+        }
+
+        async function loadDocentes() {
+            try {
+                const res = await fetch(API_BASE + '/docentes.php');
+                const data = await res.json();
+                if (!data.success) return;
+                docentes = data.docentes || [];
+                const tbody = document.getElementById('docentesTable');
+                if (docentes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:40px;">No hay docentes. Agrega uno.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = docentes.map(d => {
+                    const name = (d.nombre || '') + ' ' + (d.apellido || '');
+                    return `<tr>
+                        <td><strong>${esc(d.usuario)}</strong></td>
+                        <td>${esc(name)}</td>
+                        <td>${esc(d.email || '-')}</td>
+                        <td><button class="btn btn-secondary btn-sm" onclick="openAsignacionesModal(${d.id}, '${esc(name)}')">Ver/Editar asignaciones</button></td>
+                        <td style="text-align:right;">
+                            <button class="btn btn-secondary btn-sm" onclick="openEditDocente(${d.id})">Editar</button>
+                            <button class="btn btn-sm" style="background:rgba(239,68,68,0.06);color:#dc2626;" onclick="deleteDocente(${d.id}, '${esc(name)}')">Eliminar</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            } catch (e) { showToast('Error al cargar', 'error'); }
+        }
+
+        function openAddDocenteModal() {
+            document.getElementById('docenteModalTitle').textContent = 'Nuevo Docente';
+            document.getElementById('editDocenteId').value = '';
+            document.getElementById('docenteForm').reset();
+            document.getElementById('dUsuario').disabled = false;
+            document.getElementById('docenteModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openEditDocente(id) {
+            const d = docentes.find(x => x.id == id);
+            if (!d) return;
+            document.getElementById('docenteModalTitle').textContent = 'Editar Docente';
+            document.getElementById('editDocenteId').value = d.id;
+            document.getElementById('dUsuario').value = d.usuario;
+            document.getElementById('dUsuario').disabled = true;
+            document.getElementById('dNombre').value = d.nombre || '';
+            document.getElementById('dApellido').value = d.apellido || '';
+            document.getElementById('dEmail').value = d.email || '';
+            document.getElementById('dPassword').value = '';
+            document.getElementById('docenteModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDocenteModal() {
+            document.getElementById('docenteModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function saveDocente(e) {
+            e.preventDefault();
+            const id = document.getElementById('editDocenteId').value;
+            const body = {
+                usuario: document.getElementById('dUsuario').value.trim(),
+                nombre: document.getElementById('dNombre').value.trim(),
+                apellido: document.getElementById('dApellido').value.trim(),
+                email: document.getElementById('dEmail').value.trim()
+            };
+            if (!id) body.password = document.getElementById('dPassword').value;
+            else if (document.getElementById('dPassword').value) body.password = document.getElementById('dPassword').value;
+            if (!id && !body.password) { showToast('Contraseña requerida para nuevo docente', 'warning'); return; }
+            if (!id && body.password.length < 6) { showToast('Contraseña mínimo 6 caracteres', 'warning'); return; }
+            const url = API_BASE + '/docentes.php';
+            const res = await fetch(url, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(id ? { id, ...body } : body)
+            });
+            const data = await res.json();
+            if (data.success) { showToast('Guardado', 'success'); closeDocenteModal(); loadDocentes(); }
+            else showToast(data.error || 'Error', 'error');
+        }
+
+        async function deleteDocente(id, name) {
+            if (!confirm('¿Eliminar al docente ' + name + '?')) return;
+            const res = await fetch(API_BASE + '/docentes.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+            const data = await res.json();
+            if (data.success) { showToast('Docente eliminado', 'success'); loadDocentes(); }
+            else showToast(data.error, 'error');
+        }
+
+        let asignacionesActuales = [];
+
+        async function openAsignacionesModal(docenteId, nombre) {
+            document.getElementById('asigDocenteId').value = docenteId;
+            document.getElementById('asigDocenteNombre').textContent = nombre;
+            document.getElementById('addAsignacionForm').style.display = 'none';
+            try {
+                const res = await fetch(API_BASE + '/docentes.php?id=' + docenteId + '&asignaciones=1');
+                const data = await res.json();
+                asignacionesActuales = data.docente?.asignaciones || [];
+                renderAsignaciones();
+            } catch (e) { asignacionesActuales = []; renderAsignaciones(); }
+            document.getElementById('asignacionesModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAsignacionesModal() {
+            document.getElementById('asignacionesModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function renderAsignaciones() {
+            const list = document.getElementById('asignacionesList');
+            if (asignacionesActuales.length === 0) {
+                list.innerHTML = '<p class="text-muted text-sm">Sin asignaciones. Agrega materias y grupos.</p>';
+                return;
+            }
+            list.innerHTML = asignacionesActuales.map(a => `
+                <div class="doc-item" style="margin-bottom:8px;">
+                    <div class="doc-info" style="flex:1;">
+                        <div class="name">${esc(a.materia_nombre)}</div>
+                        <div class="meta">${esc(a.carrera)} — Cuatrimestre ${a.cuatrimestre}${a.grupo ? ' — Grupo ' + esc(a.grupo) : ''}</div>
+                    </div>
+                    <button class="btn btn-sm" style="background:rgba(239,68,68,0.06);color:#dc2626;" onclick="deleteAsignacion(${a.id})">Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        function openAddAsignacionForm() {
+            document.getElementById('addAsignacionForm').style.display = 'block';
+            document.getElementById('aCarrera').value = '';
+            document.getElementById('aCuatrimestre').value = '1';
+            document.getElementById('aMateria').innerHTML = '<option value="">Primero elige carrera y cuatrimestre</option>';
+            document.getElementById('aMateria').disabled = true;
+            document.getElementById('aMateria').value = '';
+            document.getElementById('aGrupo').value = '';
+        }
+
+        async function saveAsignacion() {
+            const docenteId = document.getElementById('asigDocenteId').value;
+            const carreraId = document.getElementById('aCarrera').value;
+            const carreraObj = carreras.find(c => c.id == carreraId);
+            const carrera = carreraObj ? carreraObj.nombre : '';
+            const cuatrimestre = document.getElementById('aCuatrimestre').value;
+            const materia = document.getElementById('aMateria').value.trim();
+            const grupo = document.getElementById('aGrupo').value.trim();
+            if (!carrera) { showToast('Selecciona carrera', 'warning'); return; }
+            if (!materia) { showToast('Selecciona materia', 'warning'); return; }
+            if (!grupo || !['A','B','C','D','E','F','G','H'].includes(grupo)) { showToast('Selecciona un grupo de A a H', 'warning'); return; }
+            const res = await fetch(API_BASE + '/docentes.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tipo: 'asignacion', docente_id: docenteId, materia_nombre: materia, carrera, cuatrimestre, grupo })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Asignación agregada', 'success');
+                document.getElementById('addAsignacionForm').style.display = 'none';
+                asignacionesActuales.push({ id: data.id, materia_nombre: materia, carrera, cuatrimestre, grupo });
+                renderAsignaciones();
+            } else showToast(data.error, 'error');
+        }
+
+        async function deleteAsignacion(asigId) {
+            if (!confirm('¿Eliminar esta asignación?')) return;
+            const res = await fetch(API_BASE + '/docentes.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo: 'asignacion', asignacion_id: asigId }) });
+            const data = await res.json();
+            if (data.success) {
+                asignacionesActuales = asignacionesActuales.filter(a => a.id != asigId);
+                renderAsignaciones();
+                showToast('Asignación eliminada', 'success');
+            }
+        }
+    </script>
+    <script>document.addEventListener('DOMContentLoaded', init);</script>
+</body>
+</html>
